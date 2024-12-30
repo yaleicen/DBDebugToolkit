@@ -52,6 +52,8 @@
     NSURL *url = [[NSURL alloc] initWithString:@"https://images.unsplash.com/photo-1518791841217-8f162f1e1131?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"];
 
     [[self.session dataTaskWithURL:url] resume];
+    
+    NSLog(@"Test the branch syntonization 3");
 
     return YES;
 }
