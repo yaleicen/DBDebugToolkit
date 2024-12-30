@@ -1,10 +1,9 @@
-name: Sync Master to Develop and Feature Branches
+name: Sync Branches After Release
 
-# 控制工作流何时运行
 on:
   push:
     branches:
-      - master
+      - release
 
 jobs:
   sync-branches:
@@ -13,32 +12,53 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # 确保获取所有的历史记录
-
+        fetch-depth: 0
     - name: Set up Git
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
     - name: Fetch all branches
       run: git fetch --all
-
+    - name: Merge release into master
+      if: github.ref =='refs/heads/release'
+      run: |
+        git checkout master
+        release_to_master_result="失败"
+        if git merge release --no-edit; then
+          git push origin master
+          release_to_master_result="成功"
+        fi
+        echo "release merge into master：$release_to_master_result"
+        echo "release_to_master_result=$release_to_master_result" >> $GITHUB_ENV
     - name: Merge master into develop
-      if: github.ref == 'refs/heads/master'
+      if: env.release_to_master_result == "成功" && github.ref =='refs/heads/release'
       run: |
         git checkout develop
-        git merge master --no-edit || (git merge --abort && echo "Merge conflict detected in develop branch, aborting merge." && exit 1)
-        git push origin develop
-
-    - name: Merge master into feature branches
-      if: github.ref == 'refs/heads/master'
+        master_to_develop_result="失败"
+        if git merge master --no-edit; then
+          git push origin develop
+          master_to_develop_result="成功"
+        else
+          git merge --abort
+        fi
+        echo "master merge into develop：$master_to_develop_result"
+        echo "master_to_develop_result=$master_to_develop_result" >> $GITHUB_ENV
+    - name: Merge develop into feature branches
+      if: env.master_to_develop_result == "成功" && github.ref =='refs/heads/release'
       run: |
+        git checkout develop
+        feature_branch_results=()
         for branch in $(git branch -r | grep 'origin/feature/' | sed 's|origin/||'); do
           git checkout $branch
-          if ! git merge master --no-edit; then
+          result="失败"
+          if git merge develop --no-edit; then
+            git push origin $branch
+            result="成功"
+          else
             git merge --abort
-            echo "Merge conflict detected in branch $branch, aborting merge."
-            continue
           fi
-          git push origin $branch
+          feature_branch_results+=("develop merge into feature/$branch：$result")
+        done
+        for res in "${feature_branch_results[@]}"; do
+          echo $res
         done
