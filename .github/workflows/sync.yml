@@ -13,10 +13,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - name: Set up Git
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
     - name: Fetch all branches
       run: git fetch --all
     - name: Merge release into master
@@ -25,7 +21,7 @@ jobs:
         git checkout master
         release_to_master_result="Failed"
         if git merge --no-edit origin/$(echo $GITHUB_REF | cut -d'/' -f 3); then
-          git push origin master
+          git push origin master --token ${{ secrets.GITHUB_TOKEN }}
           release_to_master_result="Success"
         fi
         echo "release merge into master：$release_to_master_result"
@@ -36,7 +32,7 @@ jobs:
         git checkout develop
         master_to_develop_result="Failed"
         if git merge master --no-edit; then
-          git push origin develop
+          git push origin develop --token ${{ secrets.GITHUB_TOKEN }}
           master_to_develop_result="Success"
         else
           git merge --abort
@@ -52,7 +48,7 @@ jobs:
           git checkout $branch
           result="Failed"
           if git merge develop --no-edit; then
-            git push origin $branch
+            git push origin $branch --token ${{ secrets.GITHUB_TOKEN }}
             result="Success"
           else
             git merge --abort
