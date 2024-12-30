@@ -3,7 +3,7 @@ name: Sync Branches After Release
 on:
   push:
     branches:
-      - release
+        - master
 
 jobs:
   sync-branches:
