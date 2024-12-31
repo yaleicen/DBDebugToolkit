@@ -24,6 +24,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install PyGithub
+      # 显式声明 GITHUB_TOKEN
+      - name: Cache GITHUB_TOKEN
+        run: echo "${{ secrets.GITHUB_TOKEN }}" > ${{ github.workspace }}/GITHUB_TOKEN
 
       - name: Get pushed release branch
         id: get_branch
