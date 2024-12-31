@@ -20,9 +20,20 @@ jobs:
       run: |
         git checkout master
         release_to_master_result="Failed"
-        if git merge --no-edit origin/$(echo $GITHUB_REF | cut -d'/' -f 3); then
+        branch_name=$(echo $GITHUB_REF | cut -d'/' -f 3)
+        echo "尝试合并的分支名称: $branch_name"
+        if git merge --no-edit origin/$branch_name; then
           git push origin master --token ${{ secrets.GITHUB_TOKEN }}
           release_to_master_result="Success"
+        else
+          echo "合并冲突或其他错误，正在检查冲突文件..."
+          conflict_files=$(git diff --name-only --diff-filter=U)
+          if [ -n "$conflict_files" ]; then
+            echo "发现冲突文件: $conflict_files"
+          else
+            echo "合并失败，但未发现冲突文件，可能存在其他问题"
+          fi
+          git merge --abort
         fi
         echo "release merge into master：$release_to_master_result"
         echo "release_to_master_result=$release_to_master_result" >> $GITHUB_ENV
