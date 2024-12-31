@@ -33,7 +33,7 @@ def main():
 
     source = args.source_arg if args.source_arg else args.source
     target = args.target_arg if args.target_arg else args.target
-
+    print(f"source == ：{target}, target == {target}")
     if not source or not target:
         print("Source and target branches must be specified.")
         exit(1)
