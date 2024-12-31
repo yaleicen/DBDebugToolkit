@@ -24,12 +24,14 @@ def merge_branch(source, target):
     run_command(['git', 'push', 'origin', target])
 
 def main():
+    print("开始：")
     parser = argparse.ArgumentParser(description='Merge branches using Git commands.')
     parser.add_argument('target', help='Target branch to merge into.')
     parser.add_argument('source', nargs='?', help='Source branch to merge from.')
     parser.add_argument('--source', dest='source_arg', help='Alternative source branch.')
     parser.add_argument('--target', dest='target_arg', help='Alternative target branch pattern.')
     args = parser.parse_args()
+    print(f"args == ：{args}")
 
     source = args.source_arg if args.source_arg else args.source
     target = args.target_arg if args.target_arg else args.target
