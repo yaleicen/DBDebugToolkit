@@ -45,6 +45,7 @@ def main():
 
     # 合并单个分支
     if '*' not in target:
+        print(f"分支名称1：{target}")
         merge_branch(source, target)
     else:
         # 合并到所有匹配的分支
@@ -54,6 +55,7 @@ def main():
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
 
         for fb in feature_branches:
+            print(f"分支名称：{fb}")
             merge_branch(source, fb)
 
 if __name__ == "__main__":
