@@ -25,7 +25,7 @@ jobs:
         branch_name=$(echo $GITHUB_REF | sed -e's|^refs/heads/release/||')
         echo "尝试合并的分支名称: $branch_name"
         if git merge --no-edit origin/release/$branch_name; then
-          git push origin master --token ${{ secrets.GITHUB_TOKEN }}
+          git push origin master
           release_to_master_result="Success"
         else
           echo "合并冲突或其他错误，正在检查冲突文件..."
