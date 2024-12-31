@@ -29,4 +29,4 @@ jobs:
           branch_name=$(echo $GITHUB_REF | sed -e's|^refs/heads/release/||')
           python .github/scripts/merge_branches.py master release/$branch_name
           python .github/scripts/merge_branches.py develop master
-          python .github/scripts/merge_branches.py --source develop --target feature/* 
+          python .github/scripts/merge_branches.py feature/* develop 
