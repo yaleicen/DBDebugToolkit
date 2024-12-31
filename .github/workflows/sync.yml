@@ -43,7 +43,7 @@ jobs:
         echo "release merge into master：$release_to_master_result"
         echo "release_to_master_result=$release_to_master_result" >> $GITHUB_ENV
     - name: Merge master into develop
-      if: env.release_to_master_result == "Success" && startsWith(github.ref,'refs/heads/release/')
+      if: env.release_to_master_result == 'Success' && startsWith(github.ref,'refs/heads/release/')
       run: |
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git config user.name "github-actions[bot]"
@@ -59,7 +59,7 @@ jobs:
         echo "master merge into develop：$master_to_develop_result"
         echo "master_to_develop_result=$master_to_develop_result" >> $GITHUB_ENV
     - name: Merge develop into feature branches
-      if: env.master_to_develop_result == "Success" && startsWith(github.ref,'refs/heads/release/')
+      if: env.master_to_develop_result == 'Success' && startsWith(github.ref,'refs/heads/release/')
       run: |
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git config user.name "github-actions[bot]"
