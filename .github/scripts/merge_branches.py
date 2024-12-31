@@ -1,34 +1,35 @@
 import argparse
 import os
-from github import Github, GithubException
+import subprocess
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description='Merge branches in GitHub repository.')
+def run_command(command, cwd=None):
+    try:
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {e.stderr}")
+        raise e
+
+def merge_branch(source, target):
+    print(f"Merging {source} into {target}...")
+    run_command(['git', 'checkout', target])
+    run_command(['git', 'merge', source])
+    run_command(['git', 'push', 'origin', target])
+
+def main():
+    parser = argparse.ArgumentParser(description='Merge branches using Git commands.')
     parser.add_argument('target', help='Target branch to merge into.')
     parser.add_argument('source', nargs='?', help='Source branch to merge from.')
     parser.add_argument('--source', dest='source_arg', help='Alternative source branch.')
     parser.add_argument('--target', dest='target_arg', help='Alternative target branch pattern.')
-    return parser.parse_args()
-
-def get_github_instance():
-    token = os.getenv('GITHUB_TOKEN')
-    if not token:
-        raise Exception("GITHUB_TOKEN environment variable is not set.")
-    return Github(token)
-
-def merge_branch(github, repo, source, target):
-    try:
-        base = repo.get_branch(target)
-        head = repo.get_branch(source)
-        print(f"Merging {source} into {target}...")
-        merge_info = repo.merge(base.name, head.name)
-        print(f"Successfully merged {source} into {target}.")
-    except GithubException as e:
-        print(f"Failed to merge {source} into {target}: {e}")
-        raise e
-
-def main():
-    args = parse_arguments()
+    args = parser.parse_args()
 
     source = args.source_arg if args.source_arg else args.source
     target = args.target_arg if args.target_arg else args.target
@@ -37,22 +38,23 @@ def main():
         print("Source and target branches must be specified.")
         exit(1)
 
-    g = get_github_instance()
-    repo = g.get_repo(os.getenv('GITHUB_REPOSITORY'))
+    # 获取仓库路径
+    repo_path = os.getenv('GITHUB_WORKSPACE')
+    if not repo_path:
+        raise Exception("GITHUB_WORKSPACE environment variable is not set.")
 
-    if '*' in target:
-        # Merge to multiple feature branches
-        branches = repo.get_branches()
-        feature_branches = [branch.name for branch in branches if branch.name.startswith('feature/')]
+    # 合并单个分支
+    if '*' not in target:
+        merge_branch(source, target)
+    else:
+        # 合并到所有匹配的分支
+        run_command(['git', 'checkout', 'develop'], cwd=repo_path)  # 确保在 develop 分支
+        run_command(['git', 'pull'], cwd=repo_path)
+        branches = run_command(['git', 'branch', '-r'], cwd=repo_path, capture_output=True).stdout.split()
+        feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
 
         for fb in feature_branches:
-            try:
-                merge_branch(g, repo, source, fb)
-            except GithubException:
-                print(f"Skipping {fb} due to merge conflict or error.")
-    else:
-        # Merge single branch
-        merge_branch(g, repo, source, target)
+            merge_branch(source, fb)
 
 if __name__ == "__main__":
     main()
