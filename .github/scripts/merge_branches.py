@@ -21,7 +21,7 @@ def merge_branch(github, repo, source, target):
         base = repo.get_branch(target)
         head = repo.get_branch(source)
         print(f"Merging {source} into {target}...")
-        merge_info = repo.merge(base.ref, head.ref)
+        merge_info = repo.merge(base.name, head.name)
         print(f"Successfully merged {source} into {target}.")
     except GithubException as e:
         print(f"Failed to merge {source} into {target}: {e}")
