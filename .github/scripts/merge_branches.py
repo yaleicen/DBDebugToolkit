@@ -15,7 +15,7 @@ def run_command(command, cwd=None):
             text=True
         )
         print(f"result.stdout == {result.stdout}")
-        return result.stdout
+        return result
     except subprocess.CalledProcessError as e:
         print(f"Command failed: {e.stderr}")
         raise e
