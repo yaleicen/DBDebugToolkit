@@ -26,7 +26,7 @@ def merge_branch(source, target):
 def main():
     print("开始：")
     parser = argparse.ArgumentParser(description='Merge branches using Git commands.')
-    parser.add_argument('target', help='Target branch to merge into.')
+    parser.add_argument('target', nargs='?', help='Target branch to merge into.')
     parser.add_argument('source', nargs='?', help='Source branch to merge from.')
     parser.add_argument('--source', dest='source_arg', help='Alternative source branch.')
     parser.add_argument('--target', dest='target_arg', help='Alternative target branch pattern.')
