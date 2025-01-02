@@ -57,7 +57,7 @@ def main():
         # 合并到所有匹配的分支
         run_command(['git', 'checkout', 'develop'], cwd=repo_path)  # 确保在 develop 分支
         run_command(['git', 'pull'], cwd=repo_path)
-        branches = run_command(['git', 'branch', '-r'], cwd=repo_path, capture_output=True).stdout.split()
+        branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         print(f"分支名称3：{feature_branches}")
         for fb in feature_branches:
