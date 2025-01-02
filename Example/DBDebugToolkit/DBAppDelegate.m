@@ -53,7 +53,7 @@
 
     [[self.session dataTaskWithURL:url] resume];
     
-    NSLog(@"Test the branch syntonization 3");
+    NSLog(@"Test the branch syntonization 7");
 
     return YES;
 }
