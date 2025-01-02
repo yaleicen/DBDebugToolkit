@@ -62,7 +62,7 @@ def main():
         print(f"分支名称3：{feature_branches}")
         for fb in feature_branches:
             print(f"分支名称：{fb}")
-            merge_branch(source, fb)
+            merge_branch(source, "/feature/"+fb)
 
 if __name__ == "__main__":
     main()
