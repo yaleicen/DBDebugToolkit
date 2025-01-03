@@ -16,7 +16,11 @@ def run_command(command, cwd=None):
         )
         return result
     except subprocess.CalledProcessError as e:
-        print(f"Command failed: {e.stderr}")
+        if "CONFLICT" in e.stderr:  # 检查是否有冲突
+            print(f"Merge conflict detected in feature branch. Skipping and moving to the next one.")
+            return  # 直接返回，放弃当前分支的合并
+        else:  # 其他错误
+            print(f"Command failed: {e.stderr}")
         raise e
 
 def merge_branch(source, target):
@@ -54,7 +58,9 @@ def main():
         branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         for fb in feature_branches:
-            merge_branch(source, "feature/"+fb)
-
+            try:
+                merge_branch(source, "feature/" + fb)
+            except subprocess.CalledProcessError:
+                pass  # 遇到错误时跳过，继续下一个分支
 if __name__ == "__main__":
     main()
