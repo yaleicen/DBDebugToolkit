@@ -26,8 +26,8 @@ jobs:
           TRIGGER_USER_NAME: ${{ github.actor }}
           TRIGGER_USER_EMAIL: ${{ github.event.pusher.email }}
         run: |
-          echo "TRIGGER_USER_NAME: ${{TRIGGER_USER_NAME}}"
-          echo "TRIGGER_USER_EMAIL: ${{TRIGGER_USER_EMAIL}}"
+          echo "TRIGGER_USER_NAME: ${{env.TRIGGER_USER_NAME}}"
+          echo "TRIGGER_USER_EMAIL: ${{env.TRIGGER_USER_EMAIL}}"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           branch_name=$(echo $GITHUB_REF | sed -e's|^refs/heads/release/||')
