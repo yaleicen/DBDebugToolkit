@@ -30,6 +30,7 @@ def run_command(command, cwd=None):
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
+    run_command(['git', 'pull'])
     run_command(['git','merge', source])
     run_command(['git', 'push', 'origin', target])
 
