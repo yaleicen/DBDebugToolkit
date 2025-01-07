@@ -34,7 +34,7 @@ def merge_branch(source, target):
     try:
         run_command(['git','merge', source])
     except :
-        run_command(['git','merge', '--abort'], cwd=repo_path)
+        run_command(['git','merge', '--abort'])
     else:
         run_command(['git', 'push', 'origin', target])
 
