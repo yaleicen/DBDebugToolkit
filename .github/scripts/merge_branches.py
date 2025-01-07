@@ -4,7 +4,7 @@ import subprocess
 
 def run_command(command, cwd=None):
     command_str = ' '.join(command)
-    print(f"Executing command: {command_str}")  # 打印完整的命令
+    print(f"    {command_str}")  # 打印完整的命令
     try:
         result = subprocess.run(
             command,
@@ -17,14 +17,14 @@ def run_command(command, cwd=None):
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stderr:  # 检查是否有冲突
-            print(f"Merge conflict detected in feature branch. Skipping and moving to the next one.")
+            print(f"Error: Merge conflict detected in feature branch. Skipping and moving to the next one.")
             return  # 直接返回，放弃当前分支的合并
         else:  # 其他错误
-            print(f"Command failed: {e.stderr}")
+            print(f"Error: Command failed: {e.stderr}")
         raise e
 
 def merge_branch(source, target):
-    print(f"Merging {source} into {target}...")
+    print(f"Merging {source} into {target}: ")
     run_command(['git', 'checkout', target])
     run_command(['git', 'merge', source])
     run_command(['git', 'push', 'origin', target])
