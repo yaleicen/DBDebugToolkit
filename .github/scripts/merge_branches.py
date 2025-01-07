@@ -26,6 +26,8 @@ def run_command(command, cwd=None):
             error_list.append(f"Error in {command_str}: {e}")  # 记录错误
         raise e
     except Exception as other:
+        error_list.append(f"Error in {command_str}: {other}")  # 记录错误
+        raise other
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
