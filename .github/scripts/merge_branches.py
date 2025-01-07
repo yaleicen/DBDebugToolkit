@@ -68,6 +68,7 @@ def main():
             try:
                 merge_branch(source, "feature/" + fb)
             except :
+                run_command(['git','merge', '--abort'], cwd=repo_path)
                 error_list.append(f"Error in merging {source} into feature/{fb}: {traceback.format_exc()}")  # 记录详细错误信息
 
     if error_list:  # 如果有错误，报错
