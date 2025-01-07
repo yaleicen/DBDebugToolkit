@@ -1,7 +1,6 @@
 import argparse
 import os
 import subprocess
-import traceback
 
 error_list = []  # 用于存储错误信息
 
@@ -19,21 +18,25 @@ def run_command(command, cwd=None):
         )
         return result
     except subprocess.CalledProcessError as e:
-        if "CONFLICT" in e.stderr:
-            error_list.append(f"Error in {command_str}: {e}")  # 记录错误
+        if "CONFLICT" in e.stdout:
+            error_list.append(f"Error 3 in {command_str}: {e.stdout}")  # 记录错误
             return
         else:
-            error_list.append(f"Error in {command_str}: {e}")  # 记录错误
+            error_list.append(f"Error 2 in {command_str}: {e.stdout}")  # 记录错误
         raise e
     except Exception as other:
-        error_list.append(f"Error in {command_str}: {other}")  # 记录错误
+        error_list.append(f"Error 1 in {command_str}: {other}")  # 记录错误
         raise other
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
     run_command(['git', 'pull'])
-    run_command(['git','merge', source])
-    run_command(['git', 'push', 'origin', target])
+    try:
+        run_command(['git','merge', source])
+    except :
+        run_command(['git','merge', '--abort'])
+    else:
+        run_command(['git', 'push', 'origin', target])
 
 def main():
     parser = argparse.ArgumentParser(description='Merge branches using Git commands.')
@@ -65,12 +68,9 @@ def main():
         branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         for fb in feature_branches:
-            try:
-                merge_branch(source, "feature/" + fb)
-            except :
-                error_list.append(f"Error in merging {source} into feature/{fb}: {traceback.format_exc()}")  # 记录详细错误信息
+            merge_branch(source, "feature/" + fb)
 
-    if error_list:  # 如果有错误，报错
+    if error_list:
         raise Exception(f"Errors for merging {source} into {target}:\n" + '\n'.join(error_list))
 
 if __name__ == "__main__":
