@@ -1,10 +1,13 @@
 import argparse
 import os
 import subprocess
+import traceback
+
+error_list = []  # 用于存储错误信息
 
 def run_command(command, cwd=None):
-    command_str = ' '.join(command)
-    print(f"    {command_str}")  # 打印完整的命令
+    command_str =' '.join(command)
+    print(f"    {command_str}")
     try:
         result = subprocess.run(
             command,
@@ -16,17 +19,18 @@ def run_command(command, cwd=None):
         )
         return result
     except subprocess.CalledProcessError as e:
-        if "CONFLICT" in e.stderr:  # 检查是否有冲突
+        if "CONFLICT" in e.stderr:
             print(f"Error: Merge conflict detected in feature branch. Skipping and moving to the next one.")
-            return  # 直接返回，放弃当前分支的合并
-        else:  # 其他错误
+            error_list.append(f"Error in {command_str}: {e.stderr}")  # 记录错误
+            return
+        else:
             print(f"Error: Command failed: {e.stderr}")
+            error_list.append(f"Error in {command_str}: {e.stderr}")  # 记录错误
         raise e
 
 def merge_branch(source, target):
-    print(f"Merging {source} into {target}: ")
     run_command(['git', 'checkout', target])
-    run_command(['git', 'merge', source])
+    run_command(['git','merge', source])
     run_command(['git', 'push', 'origin', target])
 
 def main():
@@ -48,12 +52,13 @@ def main():
     if not repo_path:
         raise Exception("GITHUB_WORKSPACE environment variable is not set.")
 
+    print(f"Merging {source} into {target}: ")
     # 合并单个分支
     if '*' not in target:
         merge_branch(source, target)
     else:
         # 合并到所有匹配的分支
-        run_command(['git', 'checkout', 'develop'], cwd=repo_path)  # 确保在 develop 分支
+        run_command(['git', 'checkout', 'develop'], cwd=repo_path)
         run_command(['git', 'pull'], cwd=repo_path)
         branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
@@ -61,6 +66,10 @@ def main():
             try:
                 merge_branch(source, "feature/" + fb)
             except subprocess.CalledProcessError:
-                pass  # 遇到错误时跳过，继续下一个分支
+                error_list.append(f"Error in merging {source} into feature/{fb}: {traceback.format_exc()}")  # 记录详细错误信息
+
+    if error_list:  # 如果有错误，报错
+        raise Exception("Errors occurred during the merge process:\n" + '\n'.join(error_list))
+
 if __name__ == "__main__":
     main()
