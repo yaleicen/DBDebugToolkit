@@ -20,13 +20,12 @@ def run_command(command, cwd=None):
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stderr:
-            print(f"Error: Merge conflict detected in feature branch. Skipping and moving to the next one.")
-            error_list.append(f"Error in {command_str}: {e.stderr}")  # 记录错误
+            error_list.append(f"Error in {command_str}: {e}")  # 记录错误
             return
         else:
-            print(f"Error: Command failed: {e.stderr}")
-            error_list.append(f"Error in {command_str}: {e.stderr}")  # 记录错误
+            error_list.append(f"Error in {command_str}: {e}")  # 记录错误
         raise e
+    except Exception as other:
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
@@ -66,11 +65,11 @@ def main():
         for fb in feature_branches:
             try:
                 merge_branch(source, "feature/" + fb)
-            except subprocess.CalledProcessError:
+            except :
                 error_list.append(f"Error in merging {source} into feature/{fb}: {traceback.format_exc()}")  # 记录详细错误信息
 
     if error_list:  # 如果有错误，报错
-        raise Exception("Errors occurred during the merge process:\n" + '\n'.join(error_list))
+        raise Exception(f"Errors for merging {source} into {target}:\n" + '\n'.join(error_list))
 
 if __name__ == "__main__":
     main()
