@@ -20,7 +20,6 @@ def run_command(command, cwd=None):
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stdout:
             error_list.append(f"Error 3 in {command_str}: {e.stdout}")  # 记录错误
-            return
         else:
             error_list.append(f"Error 2 in {command_str}: {e.stdout}")  # 记录错误
         raise e
