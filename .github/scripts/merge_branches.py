@@ -22,8 +22,13 @@ def run_command(command, cwd=None):
             error_list.append(f"Error 3 in {command_str}: {e.stdout}")  # 记录错误
         else:
             error_list.append(f"Error 2 in {command_str}: {e.stdout}")  # 记录错误
+        raise
     except Exception as other:
         error_list.append(f"Error 1 in {command_str}: {other}")  # 记录错误
+        raise
+    else:
+        if command_str.count('push') > 0:
+            print('Merging successful!')
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
