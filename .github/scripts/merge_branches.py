@@ -22,10 +22,13 @@ def run_command(command, cwd=None):
             error_list.append(f"Error 3 in {command_str}: {e.stdout}")  # 记录错误
         else:
             error_list.append(f"Error 2 in {command_str}: {e.stdout}")  # 记录错误
-        raise e
+        raise
     except Exception as other:
         error_list.append(f"Error 1 in {command_str}: {other}")  # 记录错误
-        raise other
+        raise
+    else:
+        if command_str.count('push') > 0:
+            print('Merging successful!')
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
@@ -56,9 +59,9 @@ def main():
     if not repo_path:
         raise Exception("GITHUB_WORKSPACE environment variable is not set.")
 
-    print(f"Merging {source} into {target}: ")
     # 合并单个分支
     if '*' not in target:
+        print(f"Merging {source} into {target}: ")
         merge_branch(source, target)
     else:
         # 合并到所有匹配的分支
@@ -67,6 +70,7 @@ def main():
         branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         for fb in feature_branches:
+            print(f"Merging {source} into feature/{fb}: ")
             merge_branch(source, "feature/" + fb)
 
     if error_list:
