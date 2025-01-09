@@ -28,7 +28,7 @@ def run_command(command, cwd=None):
         raise
     else:
         if command_str.count('push') > 0:
-            print('Merging successful!')
+            print("Merging successful!")
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
@@ -74,7 +74,8 @@ def main():
             merge_branch(source, "feature/" + fb)
 
     if error_list:
-        raise Exception(f"Errors for merging {source} into {target}:\n" + '\n'.join(error_list))
+        print(f"Errors for merging {source} into {target}:\n" + '\n'.join(error_list))
+        raise Exception("Error: Some branch merges fail")
 
 if __name__ == "__main__":
     main()
