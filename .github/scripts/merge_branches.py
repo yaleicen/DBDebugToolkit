@@ -32,17 +32,19 @@ def run_command(command, cwd=None):
             text=True
         )
         if 'push' in command_str:
-            logToBuffer("Merging successful!")
+            logToBuffer("----Merging successful!----")
+        if 'abort' in command_str:
+            logToBuffer("====Fail to merge====")
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stdout:
-            logToBuffer(f"Error in {command_str}: {e.stdout}")  # 记录错误
+            logToBuffer(f"    Error in {command_str}: {e.stdout}")  # 记录错误
         else:
-            logToBuffer(f"Error in {command_str}: {e.stdout}")  # 记录错误
+            logToBuffer(f"    Error in {command_str}: {e.stdout}")  # 记录错误
         hasError = True
         raise
     except Exception as other:
-        logToBuffer(f"Error in {command_str}: {other}")  # 记录错误
+        logToBuffer(f"    Error in {command_str}: {other}")  # 记录错误
         hasError = True
         raise
 
@@ -91,6 +93,7 @@ def main():
 
     flushLogBuffer()
     if hasError:
+        logToBuffer("================================")
         raise Exception("Error: Some branch merges fail")
 
 if __name__ == "__main__":
