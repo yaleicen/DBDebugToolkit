@@ -1,12 +1,27 @@
 import argparse
 import os
 import subprocess
+import sys
 
-error_list = []  # 用于存储错误信息
+logBuffer = []
+
+def logToBuffer(message):
+    """将日志消息添加到缓冲区"""
+    logBuffer.append(message)
+
+def flushLogBuffer():
+    """将所有缓存的日志消息一次性输出到标准错误"""
+    for message in logBuffer:
+        print(message, file=sys.stderr)
+    # 清空缓冲区
+    logBuffer.clear()
+
+
+hasError = False
 
 def run_command(command, cwd=None):
     command_str =' '.join(command)
-    print(f"    {command_str}")
+    logToBuffer(f"    {command_str}")
     try:
         result = subprocess.run(
             command,
@@ -16,19 +31,20 @@ def run_command(command, cwd=None):
             stderr=subprocess.PIPE,
             text=True
         )
+        if 'push' in command_str:
+            logToBuffer("Merging successful!")
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stdout:
-            error_list.append(f"Error 3 in {command_str}: {e.stdout}")  # 记录错误
+            logToBuffer(f"Error in {command_str}: {e.stdout}")  # 记录错误
         else:
-            error_list.append(f"Error 2 in {command_str}: {e.stdout}")  # 记录错误
+            logToBuffer(f"Error in {command_str}: {e.stdout}")  # 记录错误
+        hasError = True
         raise
     except Exception as other:
-        error_list.append(f"Error 1 in {command_str}: {other}")  # 记录错误
+        logToBuffer(f"Error in {command_str}: {other}")  # 记录错误
+        hasError = True
         raise
-    else:
-        if command_str.count('push') > 0:
-            print("Merging successful!")
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
@@ -51,7 +67,7 @@ def main():
     source = args.source_arg if args.source_arg else args.source
     target = args.target_arg if args.target_arg else args.target
     if not source or not target:
-        print("Source and target branches must be specified.")
+        logToBuffer("Source and target branches must be specified.")
         exit(1)
 
     # 获取仓库路径
@@ -61,7 +77,7 @@ def main():
 
     # 合并单个分支
     if '*' not in target:
-        print(f"Merging {source} into {target}: ")
+        logToBuffer(f"Merging {source} into {target}: ")
         merge_branch(source, target)
     else:
         # 合并到所有匹配的分支
@@ -70,11 +86,11 @@ def main():
         branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         for fb in feature_branches:
-            print(f"Merging {source} into feature/{fb}: ")
+            logToBuffer(f"Merging {source} into feature/{fb}: ")
             merge_branch(source, "feature/" + fb)
 
-    if error_list:
-        print(f"Errors for merging {source} into {target}:\n" + '\n'.join(error_list))
+    flushLogBuffer()
+    if hasError:
         raise Exception("Error: Some branch merges fail")
 
 if __name__ == "__main__":
