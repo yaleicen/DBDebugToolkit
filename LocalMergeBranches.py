@@ -89,6 +89,7 @@ def readyForMerge(source,target):
 # Merge release/xxx to master
 run_command(['git', 'add', '.'])
 run_command(['git', 'commit', '-m', '"Update"'])
+run_command(['git', 'push'])
 readyForMerge(source='relsease/1.0.0', target='master')
 readyForMerge(source='master', target='develop')
 readyForMerge(source='develop', target='feature/*')
