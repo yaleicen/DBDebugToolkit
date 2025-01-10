@@ -76,21 +76,23 @@ def readyForMerge(source,target):
             logToBuffer(f"Merging {source} into feature/{fb}: ")
             merge_branch(source, "feature/" + fb)
 
-    flushLogBuffer()
-    if hasError:
-        raise
-
-
 
 # python .github/scripts/merge_branches.py master release/$branch_name
 # python .github/scripts/merge_branches.py develop master
 # python .github/scripts/merge_branches.py --source develop --target feature/*
 
 # Merge release/xxx to master
-run_command(['git', 'add', '.'])
-run_command(['git', 'commit', '-m', '"Update"'])
-run_command(['git', 'push'])
-readyForMerge(source='relsease/1.0.0', target='master')
-readyForMerge(source='master', target='develop')
-readyForMerge(source='develop', target='feature/*')
+
+def startToMerge():
+    print("===========================")
+    run_command(['git', 'add', '.'])
+    run_command(['git', 'commit', '-m', '"Update"'])
+    readyForMerge(source='release/1.0.0', target='master')
+    readyForMerge(source='master', target='develop')
+    readyForMerge(source='develop', target='feature/*')
+    flushLogBuffer()
+    if hasError:
+        raise
+        
+startToMerge()
 
