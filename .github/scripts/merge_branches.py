@@ -6,20 +6,18 @@ import sys
 logBuffer = []
 
 def logToBuffer(message):
-    """将日志消息添加到缓冲区"""
     logBuffer.append(message)
 
 def flushLogBuffer():
-    """将所有缓存的日志消息一次性输出到标准错误"""
     for message in logBuffer:
         print(message, file=sys.stderr)
-    # 清空缓冲区
     logBuffer.clear()
 
 
 hasError = False
 
 def run_command(command, cwd=None):
+    global hasError
     command_str =' '.join(command)
     logToBuffer(f"    {command_str}")
     try:
@@ -34,17 +32,17 @@ def run_command(command, cwd=None):
         if 'push' in command_str:
             logToBuffer("----Merging successful!----")
         if 'abort' in command_str:
-            logToBuffer("====Fail to merge====")
+            logToBuffer("❌====Fail to merge====❌")
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stdout:
-            logToBuffer(f"    Error in {command_str}: {e.stdout}")  # 记录错误
+            logToBuffer(f"    Error in {command_str}: {e.stdout}")
         else:
-            logToBuffer(f"    Error in {command_str}: {e.stdout}")  # 记录错误
+            logToBuffer(f"    Error in {command_str}: {e.stdout}")
         hasError = True
         raise
     except Exception as other:
-        logToBuffer(f"    Error in {command_str}: {other}")  # 记录错误
+        logToBuffer(f"    Error in {command_str}: {other}")
         hasError = True
         raise
 
