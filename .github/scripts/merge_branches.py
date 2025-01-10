@@ -36,13 +36,13 @@ def run_command(command, cwd=None):
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stdout:
-            logToBuffer(f"    Error in {command_str}: {e.stdout}")
+            logToBuffer(f"    ❌Error in {command_str}: {e.stdout}")
         else:
-            logToBuffer(f"    Error in {command_str}: {e.stdout}")
+            logToBuffer(f"    ❌Error in {command_str}: {e.stdout}")
         hasError = True
         raise
     except Exception as other:
-        logToBuffer(f"    Error in {command_str}: {other}")
+        logToBuffer(f"    ❌Error in {command_str}: {other}")
         hasError = True
         raise
 
@@ -91,8 +91,7 @@ def main():
 
     flushLogBuffer()
     if hasError:
-        logToBuffer("================================")
-        raise Exception("Error: Some branch merges fail")
+        raise
 
 if __name__ == "__main__":
     main()
