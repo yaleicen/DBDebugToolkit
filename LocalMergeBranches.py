@@ -5,7 +5,6 @@ logBuffer = []
 
 def logToBuffer(message):
     logBuffer.append(message)
-    print(message, file=sys.stderr)
 
 def flushLogBuffer():
     print("开始打印日志：")
