@@ -1,5 +1,3 @@
-import argparse
-import os
 import subprocess
 import sys
 
@@ -9,6 +7,7 @@ def logToBuffer(message):
     logBuffer.append(message)
 
 def flushLogBuffer():
+    print("开始打印日志：")
     for message in logBuffer:
         print(message, file=sys.stderr)
     logBuffer.clear()
@@ -56,24 +55,10 @@ def merge_branch(source, target):
     else:
         run_command(['git', 'push', 'origin', target])
 
-def main():
-    parser = argparse.ArgumentParser(description='Merge branches using Git commands.')
-    parser.add_argument('target', nargs='?', help='Target branch to merge into.')
-    parser.add_argument('source', nargs='?', help='Source branch to merge from.')
-    parser.add_argument('--source', dest='source_arg', help='Alternative source branch.')
-    parser.add_argument('--target', dest='target_arg', help='Alternative target branch pattern.')
-    args = parser.parse_args()
-
-    source = args.source_arg if args.source_arg else args.source
-    target = args.target_arg if args.target_arg else args.target
+def readyForMerge(source,target):
     if not source or not target:
         logToBuffer("Source and target branches must be specified.")
         exit(1)
-
-    # Gets the code repository path
-    repo_path = os.getenv('GITHUB_WORKSPACE')
-    if not repo_path:
-        raise Exception("GITHUB_WORKSPACE environment variable is not set.")
 
     # Merge single branches
     if '*' not in target:
@@ -81,18 +66,33 @@ def main():
         merge_branch(source, target)
     else:
         # Merge to all matching branches
-        logToBuffer(f"Reday to merge {source} into feature/{target}: ")
-        run_command(['git', 'checkout', 'develop'], cwd=repo_path)
-        run_command(['git', 'pull'], cwd=repo_path)
-        branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
+        logToBuffer(f"Merging {source} into feature/{target}: ")
+        run_command(['git', 'checkout', 'develop'])
+        run_command(['git', 'pull'])
+        branches = run_command(['git', 'branch', '-r']).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         for fb in feature_branches:
             logToBuffer(f"Merging {source} into feature/{fb}: ")
             merge_branch(source, "feature/" + fb)
 
+
+# python .github/scripts/merge_branches.py master release/$branch_name
+# python .github/scripts/merge_branches.py develop master
+# python .github/scripts/merge_branches.py --source develop --target feature/*
+
+# Merge release/xxx to master
+
+def startToMerge():
+    print("===========================")
+    run_command(['git', 'add', '.'])
+    run_command(['git', 'commit', '-m', '"Update"'])
+    run_command(['git', 'push'])
+    readyForMerge(source='release/1.0.0', target='master')
+    readyForMerge(source='master', target='develop')
+    readyForMerge(source='develop', target='feature/*')
     flushLogBuffer()
     if hasError:
         raise
+        
+startToMerge()
 
-if __name__ == "__main__":
-    main()
