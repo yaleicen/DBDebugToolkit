@@ -81,7 +81,7 @@ def main():
         merge_branch(source, target)
     else:
         # Merge to all matching branches
-        logToBuffer(f"Merging {source} into feature/{fb}: ")
+        logToBuffer(f"Reday to merge {source} into feature/{target}: ")
         run_command(['git', 'checkout', 'develop'], cwd=repo_path)
         run_command(['git', 'pull'], cwd=repo_path)
         branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
