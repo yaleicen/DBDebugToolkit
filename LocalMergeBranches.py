@@ -1,5 +1,3 @@
-import argparse
-import os
 import subprocess
 import sys
 
@@ -9,6 +7,7 @@ def logToBuffer(message):
     logBuffer.append(message)
 
 def flushLogBuffer():
+    print("开始打印日志：")
     for message in logBuffer:
         print(message, file=sys.stderr)
     logBuffer.clear()
@@ -67,7 +66,7 @@ def readyForMerge(source,target):
         merge_branch(source, target)
     else:
         # Merge to all matching branches
-        logToBuffer(f"Merging {source} into feature/{fb}: ")
+        logToBuffer(f"Merging {source} into feature/{target}: ")
         run_command(['git', 'checkout', 'develop'])
         run_command(['git', 'pull'])
         branches = run_command(['git', 'branch', '-r']).stdout.split()
@@ -87,6 +86,7 @@ def startToMerge():
     print("===========================")
     run_command(['git', 'add', '.'])
     run_command(['git', 'commit', '-m', '"Update"'])
+    run_command(['git', 'push'])
     readyForMerge(source='release/1.0.0', target='master')
     readyForMerge(source='master', target='develop')
     readyForMerge(source='develop', target='feature/*')
