@@ -1,9 +1,11 @@
 name: Merge Branches
 
 on:
-  push:
-    branches:
-      - release/**
+#  push:
+#    branches:
+#      - release/**
+    release:
+        types: [published]
 
 jobs:
   merge:

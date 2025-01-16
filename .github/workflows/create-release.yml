@@ -1,0 +1,46 @@
+name: Create Release
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  create-release:
+    if: >-
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.title, '[RELEASE]') &&
+      github.event.pull_request.base.ref == 'master'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Extract version from PR title and description
+        id: extract_version
+        run: |
+            echo "Extracting version from PR title and description"
+            if [[ ! "${{ github.event.pull_request.title }}" =~ ^\[RELEASE\]\ v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              echo "PR title does not follow the required format: [RELEASE] vX.X.X"
+              exit 1
+            fi
+            if [[ ! "${{ github.event.pull_request.body }}" =~ ^Build\ [0-9]+ ]]; then
+              echo "PR description does not follow the required format: Build X"
+              exit 1
+            fi
+            title=$(echo "${{ github.event.pull_request.title }}" | grep -oP '(?<=\[RELEASE\] ).*')
+            body=$(echo "${{ github.event.pull_request.body }}" | grep -oP '(?<=Build ).*')
+            echo "TITLE=$title" >> $GITHUB_ENV
+            echo "BODY=$body" >> $GITHUB_ENV
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ env.TITLE }}" \
+            --title "Release ${{ env.TITLE }}" \
+            --notes "App version: ${{ env.TITLE }} b${{ env.BODY }}" \
+            --generate-notes \
+            --target master
