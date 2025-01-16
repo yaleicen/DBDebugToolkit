@@ -1,24 +1,10 @@
 import subprocess
 import sys
 
-logBuffer = []
-
-def logToBuffer(message):
-    logBuffer.append(message)
-
-def flushLogBuffer():
-    print("开始打印日志：")
-    for message in logBuffer:
-        print(message, file=sys.stderr)
-    logBuffer.clear()
-
-
-hasError = False
-
 def run_command(command, cwd=None):
     global hasError
     command_str =' '.join(command)
-    logToBuffer(f"    {command_str}")
+    print(f"    {command_str}")
     try:
         result = subprocess.run(
             command,
@@ -29,19 +15,19 @@ def run_command(command, cwd=None):
             text=True
         )
         if 'push' in command_str:
-            logToBuffer("----Merging successful!----")
+            print("----Merging successful!----")
         if 'abort' in command_str:
-            logToBuffer("❌====Fail to merge====❌")
+            print("❌====Fail to merge====❌")
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stdout:
-            logToBuffer(f"    ❌Error in {command_str}: {e.stdout}")
+            print(f"    ❌Error in {command_str}: {e.stdout}")
         else:
-            logToBuffer(f"    ❌Error in {command_str}: {e.stdout}")
+            print(f"    ❌Error in {command_str}: {e.stdout}")
         hasError = True
         raise
     except Exception as other:
-        logToBuffer(f"    ❌Error in {command_str}: {other}")
+        print(f"    ❌Error in {command_str}: {other}")
         hasError = True
         raise
 
@@ -57,42 +43,33 @@ def merge_branch(source, target):
 
 def readyForMerge(source,target):
     if not source or not target:
-        logToBuffer("Source and target branches must be specified.")
+        print("Source and target branches must be specified.")
         exit(1)
 
     # Merge single branches
     if '*' not in target:
-        logToBuffer(f"Merging {source} into {target}: ")
+        print(f"Merging {source} into {target}: ")
         merge_branch(source, target)
     else:
         # Merge to all matching branches
-        logToBuffer(f"Merging {source} into feature/{target}: ")
+        print(f"Merging {source} into feature/{target}: ")
         run_command(['git', 'checkout', 'develop'])
         run_command(['git', 'pull'])
         branches = run_command(['git', 'branch', '-r']).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         for fb in feature_branches:
-            logToBuffer(f"Merging {source} into feature/{fb}: ")
+            print(f"Merging {source} into feature/{fb}: ")
             merge_branch(source, "feature/" + fb)
 
-
-# python .github/scripts/merge_branches.py master release/$branch_name
-# python .github/scripts/merge_branches.py develop master
-# python .github/scripts/merge_branches.py --source develop --target feature/*
-
 # Merge release/xxx to master
-
 def startToMerge():
     print("===========================")
-    run_command(['git', 'add', '.'])
-    run_command(['git', 'commit', '-m', '"Update"'])
-    run_command(['git', 'push'])
+#    run_command(['git', 'add', '.'])
+#    run_command(['git', 'commit', '-m', '"Update"'])
+#    run_command(['git', 'push'])
     readyForMerge(source='release/1.0.0', target='master')
     readyForMerge(source='master', target='develop')
     readyForMerge(source='develop', target='feature/*')
-    flushLogBuffer()
     if hasError:
         raise
-        
-startToMerge()
 
