@@ -53,7 +53,7 @@
 
     [[self.session dataTaskWithURL:url] resume];
     
-    NSLog(@"Test release then merge branches 2");
+    NSLog(@"Test release then merge branches 1.0.2");
 
     return YES;
 }
