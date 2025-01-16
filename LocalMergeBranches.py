@@ -64,12 +64,13 @@ def readyForMerge(source,target):
 # Merge release/xxx to master
 def startToMerge():
     print("===========================")
-#    run_command(['git', 'add', '.'])
-#    run_command(['git', 'commit', '-m', '"Update"'])
-#    run_command(['git', 'push'])
+    run_command(['git', 'add', '.'])
+    run_command(['git', 'commit', '-m', '"Update"'])
+    run_command(['git', 'push'])
     readyForMerge(source='release/1.0.0', target='master')
     readyForMerge(source='master', target='develop')
     readyForMerge(source='develop', target='feature/*')
     if hasError:
         raise
 
+startToMerge()
