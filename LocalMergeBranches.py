@@ -52,7 +52,7 @@ def readyForMerge(source,target):
         merge_branch(source, target)
     else:
         # Merge to all matching branches
-        print(f"Merging {source} into feature/{target}: ")
+        print(f"Merging {source} into {target}: ")
         run_command(['git', 'checkout', 'develop'])
         run_command(['git', 'pull'])
         branches = run_command(['git', 'branch', '-r']).stdout.split()
@@ -67,7 +67,7 @@ def startToMerge():
     run_command(['git', 'add', '.'])
     run_command(['git', 'commit', '-m', '"Update"'])
     run_command(['git', 'push'])
-    readyForMerge(source='release/1.0.0', target='master')
+    readyForMerge(source='release/1.0.2', target='master')
     readyForMerge(source='master', target='develop')
     readyForMerge(source='develop', target='feature/*')
     if hasError:
