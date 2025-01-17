@@ -78,7 +78,10 @@ def main():
     # Merge single branches
     if '*' not in target:
         logToBuffer(f"Merging {source} into {target}: ")
-        merge_branch(source, target)
+        try:
+            merge_branch(source, target)
+        except:
+            raise
     else:
         # Merge to all matching branches
         logToBuffer(f"Reday to merge {source} into feature/{target}: ")
