@@ -60,23 +60,17 @@ def main():
     parser = argparse.ArgumentParser(description='Merge branches using Git commands.')
     parser.add_argument('target', nargs='?', help='Target branch to merge into.')
     parser.add_argument('source', nargs='?', help='Source branch to merge from.')
-    parser.add_argument('--source', dest='source_arg', help='Alternative source branch.')
-    parser.add_argument('--target', dest='target_arg', help='Alternative target branch pattern.')
     args = parser.parse_args()
 
-    source = args.source_arg if args.source_arg else args.source
-    target = args.target_arg if args.target_arg else args.target
+    source = args.source
+    target = args.target
     if not source or not target:
-        logToBuffer("Source and target branches must be specified.")
-        flushLogBuffer()
-        raise
+        raise Exception("❌ Source and target branches must be specified. ❌")
 
     # Gets the code repository path
     repo_path = os.getenv('GITHUB_WORKSPACE')
     if not repo_path:
-        logToBuffer("GITHUB_WORKSPACE environment variable is not set.")
-        flushLogBuffer()
-        raise
+        raise Exception("❌ GITHUB_WORKSPACE environment variable is not set. ❌")
 
     # Merge single branches
     if '*' not in target:
@@ -85,27 +79,25 @@ def main():
             merge_branch(source, target)
         except:
             flushLogBuffer()
-            raise
+            raise Exception("❌ Encounterd some errors in merging branches ❌")
     else:
         # Merge to all matching branches
         logToBuffer(f"Reday to merge {source} into {target}: ")
-        try:
-            run_command(['git', 'checkout', 'develop'], cwd=repo_path)
-            run_command(['git', 'pull'], cwd=repo_path)
-            branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
-            feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
-            for fb in feature_branches:
-                logToBuffer(f"Merging {source} into feature/{fb}: ")
-                try:
-                    merge_branch(source, "feature/" + fb)
-                except Exception as e:
-                    logToBuffer(f"    ❌Error in merging {source} into feature/{fb}: {e}")
-                    continue
-        finally:
-            flushLogBuffer()
-
+        run_command(['git', 'checkout', 'develop'], cwd=repo_path)
+        run_command(['git', 'pull'], cwd=repo_path)
+        branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
+        feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
+        for fb in feature_branches:
+            logToBuffer(f"Merging {source} into feature/{fb}: ")
+            try:
+                merge_branch(source, "feature/" + fb)
+            except Exception as e:
+                logToBuffer(f"    ❌Error in merging {source} into feature/{fb}: {e}")
+                continue
+            
+    flushLogBuffer()
     if hasError:
-        raise
+        raise Exception("❌ Encounterd some errors in merging branches ❌")
 
 if __name__ == "__main__":
     main()
