@@ -68,12 +68,15 @@ def main():
     target = args.target_arg if args.target_arg else args.target
     if not source or not target:
         logToBuffer("Source and target branches must be specified.")
+        flushLogBuffer()
         exit(1)
 
     # Gets the code repository path
     repo_path = os.getenv('GITHUB_WORKSPACE')
     if not repo_path:
-        raise Exception("GITHUB_WORKSPACE environment variable is not set.")
+        logToBuffer("GITHUB_WORKSPACE environment variable is not set.")
+        flushLogBuffer()
+        exit(1)
 
     # Merge single branches
     if '*' not in target:
@@ -81,21 +84,28 @@ def main():
         try:
             merge_branch(source, target)
         except:
-            raise
+            flushLogBuffer()
+            exit(1)
     else:
         # Merge to all matching branches
-        logToBuffer(f"Reday to merge {source} into feature/{target}: ")
-        run_command(['git', 'checkout', 'develop'], cwd=repo_path)
-        run_command(['git', 'pull'], cwd=repo_path)
-        branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
-        feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
-        for fb in feature_branches:
-            logToBuffer(f"Merging {source} into feature/{fb}: ")
-            merge_branch(source, "feature/" + fb)
+        logToBuffer(f"Reday to merge {source} into {target}: ")
+        try:
+            run_command(['git', 'checkout', 'develop'], cwd=repo_path)
+            run_command(['git', 'pull'], cwd=repo_path)
+            branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
+            feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
+            for fb in feature_branches:
+                logToBuffer(f"Merging {source} into feature/{fb}: ")
+                try:
+                    merge_branch(source, "feature/" + fb)
+                except Exception as e:
+                    logToBuffer(f"    ❌Error in merging {source} into feature/{fb}: {e}")
+                    continue
+        finally:
+            flushLogBuffer()
 
-    flushLogBuffer()
     if hasError:
-        raise
+        exit(1)
 
 if __name__ == "__main__":
     main()
