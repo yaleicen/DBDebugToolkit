@@ -67,7 +67,7 @@ def startToMerge():
     run_command(['git', 'add', '.'])
     run_command(['git', 'commit', '-m', '"Update"'])
     run_command(['git', 'push'])
-    readyForMerge(source='release/1.0.2', target='master')
+    readyForMerge(source='release/1.0.5', target='master')
     readyForMerge(source='master', target='develop')
     readyForMerge(source='develop', target='feature/*')
     if hasError:
