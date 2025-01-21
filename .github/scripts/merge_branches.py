@@ -69,14 +69,14 @@ def main():
     if not source or not target:
         logToBuffer("Source and target branches must be specified.")
         flushLogBuffer()
-        exit(1)
+        raise
 
     # Gets the code repository path
     repo_path = os.getenv('GITHUB_WORKSPACE')
     if not repo_path:
         logToBuffer("GITHUB_WORKSPACE environment variable is not set.")
         flushLogBuffer()
-        exit(1)
+        raise
 
     # Merge single branches
     if '*' not in target:
@@ -85,7 +85,7 @@ def main():
             merge_branch(source, target)
         except:
             flushLogBuffer()
-            exit(1)
+            raise
     else:
         # Merge to all matching branches
         logToBuffer(f"Reday to merge {source} into {target}: ")
@@ -105,7 +105,7 @@ def main():
             flushLogBuffer()
 
     if hasError:
-        exit(1)
+        raise
 
 if __name__ == "__main__":
     main()
