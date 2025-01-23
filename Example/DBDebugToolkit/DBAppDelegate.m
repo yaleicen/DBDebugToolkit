@@ -53,7 +53,7 @@
 
     [[self.session dataTaskWithURL:url] resume];
     
-    NSLog(@"Finished the txt changes");
+    NSLog(@"Ready to release 1.0.7");
 
     return YES;
 }
