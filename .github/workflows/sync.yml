@@ -28,4 +28,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           python .github/scripts/merge_branches.py develop master
-          python .github/scripts/merge_branches.py --source develop --target feature/*
+          python .github/scripts/merge_branches.py feature/* develop
