@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface DBAppDelegate : UIResponder <UIApplicationDelegate>
-
+// key window
 @property (strong, nonatomic) UIWindow *window;
 
 @end
