@@ -1,12 +1,25 @@
 import argparse
 import os
 import subprocess
+import sys
 
-error_list = []  # 用于存储错误信息
+logBuffer = []
+
+def logToBuffer(message):
+    logBuffer.append(message)
+
+def flushLogBuffer():
+    for message in logBuffer:
+        print(message, file=sys.stderr)
+    logBuffer.clear()
+
+
+hasError = False
 
 def run_command(command, cwd=None):
+    global hasError
     command_str =' '.join(command)
-    print(f"    {command_str}")
+    logToBuffer(f"    {command_str}")
     try:
         result = subprocess.run(
             command,
@@ -16,17 +29,22 @@ def run_command(command, cwd=None):
             stderr=subprocess.PIPE,
             text=True
         )
+        if 'push' in command_str:
+            logToBuffer("----Merging successful!----")
+        if 'abort' in command_str:
+            logToBuffer("❌====Fail to merge====❌")
         return result
     except subprocess.CalledProcessError as e:
         if "CONFLICT" in e.stdout:
-            error_list.append(f"Error 3 in {command_str}: {e.stdout}")  # 记录错误
-            return
+            logToBuffer(f"    ❌Error in {command_str}: {e.stdout}")
         else:
-            error_list.append(f"Error 2 in {command_str}: {e.stdout}")  # 记录错误
-        raise e
+            logToBuffer(f"    ❌Error in {command_str}: {e.stdout}")
+        hasError = True
+        raise
     except Exception as other:
-        error_list.append(f"Error 1 in {command_str}: {other}")  # 记录错误
-        raise other
+        logToBuffer(f"    ❌Error in {command_str}: {other}")
+        hasError = True
+        raise
 
 def merge_branch(source, target):
     run_command(['git', 'checkout', target])
@@ -42,36 +60,44 @@ def main():
     parser = argparse.ArgumentParser(description='Merge branches using Git commands.')
     parser.add_argument('target', nargs='?', help='Target branch to merge into.')
     parser.add_argument('source', nargs='?', help='Source branch to merge from.')
-    parser.add_argument('--source', dest='source_arg', help='Alternative source branch.')
-    parser.add_argument('--target', dest='target_arg', help='Alternative target branch pattern.')
     args = parser.parse_args()
 
-    source = args.source_arg if args.source_arg else args.source
-    target = args.target_arg if args.target_arg else args.target
+    source = args.source
+    target = args.target
     if not source or not target:
-        print("Source and target branches must be specified.")
-        exit(1)
+        raise Exception("❌ Source and target branches must be specified. ❌")
 
-    # 获取仓库路径
+    # Gets the code repository path
     repo_path = os.getenv('GITHUB_WORKSPACE')
     if not repo_path:
-        raise Exception("GITHUB_WORKSPACE environment variable is not set.")
+        raise Exception("❌ GITHUB_WORKSPACE environment variable is not set. ❌")
 
-    print(f"Merging {source} into {target}: ")
-    # 合并单个分支
+    # Merge single branches
     if '*' not in target:
-        merge_branch(source, target)
+        logToBuffer(f"Merging {source} into {target}: ")
+        try:
+            merge_branch(source, target)
+        except:
+            flushLogBuffer()
+            raise Exception("❌ Encounterd some errors in merging branches ❌")
     else:
-        # 合并到所有匹配的分支
+        # Merge to all matching branches
+        logToBuffer(f"Reday to merge {source} into {target}: ")
         run_command(['git', 'checkout', 'develop'], cwd=repo_path)
         run_command(['git', 'pull'], cwd=repo_path)
         branches = run_command(['git', 'branch', '-r'], cwd=repo_path).stdout.split()
         feature_branches = [b.split('/')[-1] for b in branches if b.startswith('origin/feature/')]
         for fb in feature_branches:
-            merge_branch(source, "feature/" + fb)
-
-    if error_list:
-        raise Exception(f"Errors for merging {source} into {target}:\n" + '\n'.join(error_list))
+            logToBuffer(f"Merging {source} into feature/{fb}: ")
+            try:
+                merge_branch(source, "feature/" + fb)
+            except Exception as e:
+                logToBuffer(f"    ❌Error in merging {source} into feature/{fb}: {e}")
+                continue
+            
+    flushLogBuffer()
+    if hasError:
+        raise Exception("❌ Encounterd some errors in merging branches ❌")
 
 if __name__ == "__main__":
     main()

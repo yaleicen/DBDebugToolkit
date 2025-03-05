@@ -53,7 +53,7 @@
 
     [[self.session dataTaskWithURL:url] resume];
     
-    NSLog(@"Test the branch syntonization 12-1");
+    NSLog(@"Ready to release 1.0.10");
 
     return YES;
 }
